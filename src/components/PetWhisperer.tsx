@@ -57,6 +57,13 @@ export const PetWhisperer: React.FC = () => {
     }
   }, []);
 
+  // Remove URL params when leaving shared mode
+  useEffect(() => {
+    if (!sharedMode && window.location.search) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [sharedMode]);
+
   // Handle image upload (reset shared mode)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,10 +74,6 @@ export const PetWhisperer: React.FC = () => {
       setMessage(null);
       setShareUrl(null);
       setSharedMode(false);
-      // Remove URL params if coming from shared mode
-      if (window.location.search) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
     };
     reader.readAsDataURL(file);
   };
@@ -144,15 +147,13 @@ export const PetWhisperer: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          {!sharedMode && (
-            <Input
-              type="file"
-              accept="image/*"
-              ref={inputRef}
-              onChange={handleImageChange}
-              disabled={analyzing}
-            />
-          )}
+          <Input
+            type="file"
+            accept="image/*"
+            ref={inputRef}
+            onChange={handleImageChange}
+            disabled={analyzing || sharedMode}
+          />
           {image && !sharedMode && (
             <img
               src={image}
@@ -160,15 +161,13 @@ export const PetWhisperer: React.FC = () => {
               className="rounded-lg w-full h-48 object-cover border"
             />
           )}
-          {!sharedMode && (
-            <Button
-              onClick={handleAnalyze}
-              disabled={!image || analyzing}
-              className="w-full"
-            >
-              {analyzing ? "Analyzing..." : "Analyze Pet Face"}
-            </Button>
-          )}
+          <Button
+            onClick={handleAnalyze}
+            disabled={!image || analyzing || sharedMode}
+            className="w-full"
+          >
+            {analyzing ? "Analyzing..." : "Analyze Pet Face"}
+          </Button>
           <div>
             <div className="flex flex-wrap gap-2 mt-2">
               {celebrityVoices.map((cv) => (
@@ -178,7 +177,7 @@ export const PetWhisperer: React.FC = () => {
                   size="sm"
                   className="flex items-center gap-1"
                   onClick={() => handleVoiceSelect(cv.id, cv.locked)}
-                  disabled={cv.locked && !purchased && !sharedMode}
+                  disabled={(cv.locked && !purchased && !sharedMode) || sharedMode}
                 >
                   {cv.locked && !purchased && !sharedMode ? <Lock size={16} /> : null}
                   {cv.name}
@@ -225,7 +224,10 @@ export const PetWhisperer: React.FC = () => {
           )}
           {sharedMode && (
             <div className="text-xs text-muted-foreground text-center mt-2">
-              You are viewing a shared Pet Whisperer message!
+              You are viewing a shared Pet Whisperer message!<br />
+              <span className="text-blue-500 underline cursor-pointer" onClick={() => inputRef.current?.click()}>
+                Try it with your own pet!
+              </span>
             </div>
           )}
         </div>
