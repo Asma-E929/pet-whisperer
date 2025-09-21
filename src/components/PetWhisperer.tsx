@@ -136,7 +136,7 @@ export const PetWhisperer: React.FC = () => {
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-8 shadow-lg">
+    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
           🐾 Pet Whisperer
@@ -153,20 +153,44 @@ export const PetWhisperer: React.FC = () => {
             ref={inputRef}
             onChange={handleImageChange}
             disabled={analyzing || sharedMode}
+            aria-label="Upload a pet photo"
           />
           {image && !sharedMode && (
             <img
               src={image}
-              alt="Pet"
+              alt="Uploaded pet"
               className="rounded-lg w-full h-48 object-cover border"
             />
           )}
           <Button
             onClick={handleAnalyze}
             disabled={!image || analyzing || sharedMode}
-            className="w-full"
+            className="w-full flex items-center justify-center"
+            aria-label="Analyze Pet Face"
           >
-            {analyzing ? "Analyzing..." : "Analyze Pet Face"}
+            {analyzing ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-primary" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                Analyzing...
+              </span>
+            ) : (
+              "Analyze Pet Face"
+            )}
           </Button>
           <div>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -178,8 +202,14 @@ export const PetWhisperer: React.FC = () => {
                   className="flex items-center gap-1"
                   onClick={() => handleVoiceSelect(cv.id, cv.locked)}
                   disabled={(cv.locked && !purchased && !sharedMode) || sharedMode}
+                  aria-label={
+                    cv.locked && !purchased && !sharedMode
+                      ? `${cv.name} (locked)`
+                      : cv.name
+                  }
+                  tabIndex={0}
                 >
-                  {cv.locked && !purchased && !sharedMode ? <Lock size={16} /> : null}
+                  {cv.locked && !purchased && !sharedMode ? <Lock size={16} aria-hidden /> : null}
                   {cv.name}
                 </Button>
               ))}
@@ -189,6 +219,7 @@ export const PetWhisperer: React.FC = () => {
                 variant="secondary"
                 className="mt-2 w-full"
                 onClick={handlePurchase}
+                aria-label="Unlock Celebrity Voices"
               >
                 Unlock Celebrity Voices ($1.99)
               </Button>
@@ -203,20 +234,22 @@ export const PetWhisperer: React.FC = () => {
                 onClick={handlePlay}
                 className="flex items-center gap-2"
                 variant="outline"
+                aria-label="Play Voice Message"
               >
-                <Volume2 size={18} /> Play Voice Message
+                <Volume2 size={18} aria-hidden /> Play Voice Message
               </Button>
               {!sharedMode && (
                 <Button
                   onClick={handleShare}
                   className="flex items-center gap-2"
                   variant="ghost"
+                  aria-label="Share"
                 >
-                  <Share2 size={18} /> Share
+                  <Share2 size={18} aria-hidden /> Share
                 </Button>
               )}
               {shareUrl && (
-                <div className="text-xs text-muted-foreground break-all mt-1">
+                <div className="text-xs text-muted-foreground break-all mt-1" aria-label="Shareable link">
                   {shareUrl}
                 </div>
               )}
@@ -225,13 +258,38 @@ export const PetWhisperer: React.FC = () => {
           {sharedMode && (
             <div className="text-xs text-muted-foreground text-center mt-2">
               You are viewing a shared Pet Whisperer message!<br />
-              <span className="text-blue-500 underline cursor-pointer" onClick={() => inputRef.current?.click()}>
+              <span
+                className="text-blue-500 underline cursor-pointer"
+                onClick={() => inputRef.current?.click()}
+                tabIndex={0}
+                role="button"
+                aria-label="Try it with your own pet"
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    inputRef.current?.click();
+                  }
+                }}
+              >
                 Try it with your own pet!
               </span>
             </div>
           )}
         </div>
       </CardContent>
+      <style>
+        {`
+          @media (max-width: 480px) {
+            .max-w-md {
+              max-width: 100vw !important;
+              margin: 0 !important;
+              border-radius: 0 !important;
+            }
+            .h-48 {
+              height: 10rem !important;
+            }
+          }
+        `}
+      </style>
     </Card>
   );
 };
