@@ -44,6 +44,7 @@ export const PetWhisperer: React.FC = () => {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharedMode, setSharedMode] = useState(false);
   const [showTryIt, setShowTryIt] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const voiceBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -83,10 +84,21 @@ export const PetWhisperer: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // Helper to show toast and update ARIA live region
+  const showToast = (msg: string, type: "success" | "error") => {
+    setToastMsg(msg);
+    if (type === "success") {
+      toast.success(msg, { ariaLive: "polite" });
+    } else {
+      toast.error(msg, { ariaLive: "polite" });
+    }
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   // Mock AI analysis
   const handleAnalyze = () => {
     if (!image) {
-      toast.error("Please upload a pet photo first!", { ariaLive: "polite" });
+      showToast("Please upload a pet photo first!", "error");
       return;
     }
     setAnalyzing(true);
@@ -96,7 +108,7 @@ export const PetWhisperer: React.FC = () => {
       setShareUrl(getShareUrl(msg, voice));
       setAnalyzing(false);
       setSharedMode(false);
-      toast.success("Pet message generated!", { ariaLive: "polite" });
+      showToast("Pet message generated!", "success");
     }, 1200);
   };
 
@@ -115,11 +127,14 @@ export const PetWhisperer: React.FC = () => {
   // Handle celebrity voice selection
   const handleVoiceSelect = (v: string, locked: boolean) => {
     if (locked && !purchased && !sharedMode) {
-      toast.error("This voice is locked! Purchase to unlock celebrity voices.", { ariaLive: "polite" });
+      showToast("This voice is locked! Purchase to unlock celebrity voices.", "error");
       return;
     }
     setVoice(v);
-    toast.success(`Voice set to ${celebrityVoices.find(cv => cv.id === v)?.name || v}`, { ariaLive: "polite" });
+    showToast(
+      `Voice set to ${celebrityVoices.find(cv => cv.id === v)?.name || v}`,
+      "success"
+    );
     // If a message is already generated, update shareUrl
     if (message) {
       setShareUrl(getShareUrl(message, v));
@@ -165,22 +180,34 @@ export const PetWhisperer: React.FC = () => {
   // Mock purchase
   const handlePurchase = () => {
     setPurchased(true);
-    toast.success("Celebrity voices unlocked! Try them out.", { ariaLive: "polite" });
+    showToast("Celebrity voices unlocked! Try them out.", "success");
   };
 
   // Share
   const handleShare = () => {
     if (shareUrl) {
       navigator.clipboard.writeText(shareUrl);
-      toast.success("Shareable link copied to clipboard!", { ariaLive: "polite" });
+      showToast("Shareable link copied to clipboard!", "success");
     }
   };
 
   return (
-    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive" tabIndex={-1}>
+    <Card
+      className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+      tabIndex={0}
+      aria-label="Pet Whisperer card"
+    >
       <span className="sr-only" role="heading" aria-level={1}>
         Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice.
       </span>
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        id="pet-whisperer-toast-region"
+      >
+        {toastMsg}
+      </div>
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
           🐾 Pet Whisperer
@@ -261,6 +288,7 @@ export const PetWhisperer: React.FC = () => {
                           ? `${cv.name} (locked)`
                           : cv.name
                       }
+                      aria-current={isSelected ? "true" : undefined}
                       tabIndex={0}
                     >
                       {isLocked ? <Lock size={16} aria-hidden /> : null}
