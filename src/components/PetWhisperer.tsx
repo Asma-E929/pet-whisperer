@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Volume2, Lock, Share2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const funnyMessages = [
   "Feed me now, human!",
@@ -229,7 +230,11 @@ export const PetWhisperer: React.FC = () => {
           </div>
           {message && (
             <div className="mt-4 flex flex-col items-center gap-2">
-              <div className="bg-muted rounded p-3 w-full text-center text-lg font-semibold border border-gray-200 shadow-sm">
+              <div
+                className="bg-muted rounded p-3 w-full text-center text-lg font-semibold border border-gray-200 shadow-sm animate-fade-in"
+                style={{ animation: "fade-in 0.5s" }}
+                aria-live="polite"
+              >
                 {message}
               </div>
               <Button
@@ -241,14 +246,23 @@ export const PetWhisperer: React.FC = () => {
                 <Volume2 size={18} aria-hidden /> Play Voice Message
               </Button>
               {!sharedMode && (
-                <Button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  variant="ghost"
-                  aria-label="Share"
-                >
-                  <Share2 size={18} aria-hidden /> Share
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleShare}
+                        className="flex items-center gap-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        variant="ghost"
+                        aria-label="Share"
+                      >
+                        <Share2 size={18} aria-hidden /> Share
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Copy a shareable link to this message
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
               {shareUrl && (
                 <div className="text-xs text-muted-foreground break-all mt-1" aria-label="Shareable link">
@@ -261,7 +275,7 @@ export const PetWhisperer: React.FC = () => {
             <div className="text-xs text-muted-foreground text-center mt-2">
               You are viewing a shared Pet Whisperer message!<br />
               <button
-                className="text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition"
+                className="text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800"
                 onClick={() => inputRef.current?.click()}
                 tabIndex={0}
                 role="button"
@@ -293,6 +307,13 @@ export const PetWhisperer: React.FC = () => {
             .min-w-[110px] {
               min-width: 90px !important;
             }
+          }
+          @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px);}
+            to { opacity: 1; transform: translateY(0);}
+          }
+          .animate-fade-in {
+            animation: fade-in 0.5s;
           }
         `}
       </style>
