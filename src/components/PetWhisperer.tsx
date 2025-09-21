@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, ForwardedRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,8 +49,23 @@ export const PetWhisperer: React.FC<PetWhispererProps> = ({ cardRef }) => {
   const [sharedMode, setSharedMode] = useState(false);
   const [showTryIt, setShowTryIt] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [focusAnnouncement, setFocusAnnouncement] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const voiceBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Announce when card is focused (for skip link)
+  useEffect(() => {
+    if (!cardRef?.current) return;
+    const handleFocus = () => {
+      setFocusAnnouncement("Pet Whisperer section focused");
+      setTimeout(() => setFocusAnnouncement(null), 1200);
+    };
+    const node = cardRef.current;
+    node.addEventListener("focus", handleFocus);
+    return () => {
+      node.removeEventListener("focus", handleFocus);
+    };
+  }, [cardRef]);
 
   // Load shared message from URL params
   useEffect(() => {
@@ -214,6 +229,14 @@ export const PetWhisperer: React.FC<PetWhispererProps> = ({ cardRef }) => {
         id="pet-whisperer-toast-region"
       >
         {toastMsg}
+      </div>
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        id="pet-whisperer-focus-announcement"
+      >
+        {focusAnnouncement}
       </div>
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
