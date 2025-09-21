@@ -137,7 +137,7 @@ export const PetWhisperer: React.FC = () => {
   };
 
   return (
-    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg">
+    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
           🐾 Pet Whisperer
@@ -161,7 +161,7 @@ export const PetWhisperer: React.FC = () => {
             <img
               src={image}
               alt="Uploaded pet"
-              className="rounded-lg w-full h-48 object-cover border border-gray-300 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary animate-fade-in"
+              className="rounded-lg w-full h-48 object-cover border border-gray-300 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary animate-fade-in transition-transform duration-200 hover:scale-105 hover:shadow-lg"
               tabIndex={0}
             />
           )}
@@ -200,12 +200,15 @@ export const PetWhisperer: React.FC = () => {
               <TooltipProvider>
                 {celebrityVoices.map((cv) => {
                   const isLocked = cv.locked && !purchased && !sharedMode;
+                  const isSelected = voice === cv.id;
                   const btn = (
                     <Button
                       key={cv.id}
-                      variant={voice === cv.id ? "default" : "outline"}
+                      variant={isSelected ? "default" : "outline"}
                       size="sm"
-                      className="flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className={`flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-150
+                        ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary bg-primary/90 text-white shadow" : ""}
+                        `}
                       onClick={() => handleVoiceSelect(cv.id, cv.locked)}
                       disabled={isLocked || sharedMode}
                       aria-label={
@@ -237,11 +240,11 @@ export const PetWhisperer: React.FC = () => {
             {!purchased && !sharedMode && (
               <Button
                 variant="secondary"
-                className="mt-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="mt-2 w-full py-3 text-base font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border-2 border-primary text-primary bg-primary/10 hover:bg-primary/20 transition"
                 onClick={handlePurchase}
                 aria-label="Unlock Celebrity Voices"
               >
-                Unlock Celebrity Voices ($1.99)
+                🔓 Unlock Celebrity Voices ($1.99)
               </Button>
             )}
           </div>
@@ -331,6 +334,13 @@ export const PetWhisperer: React.FC = () => {
           }
           .animate-fade-in {
             animation: fade-in 0.5s;
+          }
+          @keyframes fade-in-card {
+            from { opacity: 0; transform: scale(0.98);}
+            to { opacity: 1; transform: scale(1);}
+          }
+          .animate-fade-in-card {
+            animation: fade-in-card 0.7s cubic-bezier(0.22, 1, 0.36, 1);
           }
         `}
       </style>
