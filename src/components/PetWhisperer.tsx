@@ -43,6 +43,7 @@ export const PetWhisperer: React.FC = () => {
   const [purchased, setPurchased] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharedMode, setSharedMode] = useState(false);
+  const [showTryIt, setShowTryIt] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Load shared message from URL params
@@ -55,6 +56,7 @@ export const PetWhisperer: React.FC = () => {
       setVoice(sharedVoice || "default");
       setShareUrl(getShareUrl(sharedMessage, sharedVoice || "default"));
       setSharedMode(true);
+      setTimeout(() => setShowTryIt(true), 200); // fade-in for "Try it" link
     }
   }, []);
 
@@ -63,6 +65,7 @@ export const PetWhisperer: React.FC = () => {
     if (!sharedMode && window.location.search) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+    if (!sharedMode) setShowTryIt(false);
   }, [sharedMode]);
 
   // Handle image upload (reset shared mode)
@@ -137,7 +140,7 @@ export const PetWhisperer: React.FC = () => {
   };
 
   return (
-    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card">
+    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
           🐾 Pet Whisperer
@@ -295,7 +298,7 @@ export const PetWhisperer: React.FC = () => {
             <div className="text-xs text-muted-foreground text-center mt-2">
               You are viewing a shared Pet Whisperer message!<br />
               <button
-                className="text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800"
+                className={`text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800 fade-in-tryit`}
                 onClick={() => inputRef.current?.click()}
                 tabIndex={0}
                 role="button"
@@ -319,13 +322,22 @@ export const PetWhisperer: React.FC = () => {
             .max-w-md {
               max-width: 100vw !important;
               margin: 0 !important;
-              border-radius: 0 !important;
+              border-radius: 1rem !important;
+              padding-left: 0.5rem !important;
+              padding-right: 0.5rem !important;
             }
             .h-48 {
               height: 10rem !important;
             }
             .min-w-[110px] {
               min-width: 90px !important;
+            }
+          }
+          @media (hover: hover) and (pointer: fine) {
+            .card-interactive:hover {
+              box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 6px 0 rgba(0,0,0,0.10);
+              transform: scale(1.015);
+              transition: box-shadow 0.25s cubic-bezier(.4,0,.2,1), transform 0.25s cubic-bezier(.4,0,.2,1);
             }
           }
           @keyframes fade-in {
@@ -341,6 +353,22 @@ export const PetWhisperer: React.FC = () => {
           }
           .animate-fade-in-card {
             animation: fade-in-card 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+          @keyframes fade-in-tryit {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          .fade-in-tryit {
+            animation: fade-in-tryit 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in, .animate-fade-in-card, .fade-in-tryit {
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+            }
+            .card-interactive, .card-interactive:hover {
+              transition: none !important;
+            }
           }
         `}
       </style>
