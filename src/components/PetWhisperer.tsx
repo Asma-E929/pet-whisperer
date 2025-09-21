@@ -45,6 +45,7 @@ export const PetWhisperer: React.FC = () => {
   const [sharedMode, setSharedMode] = useState(false);
   const [showTryIt, setShowTryIt] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const voiceBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Load shared message from URL params
   useEffect(() => {
@@ -125,6 +126,42 @@ export const PetWhisperer: React.FC = () => {
     }
   };
 
+  // Keyboard navigation for voice buttons
+  const handleVoiceBtnKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    idx: number,
+    locked: boolean
+  ) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      let next = idx + 1;
+      while (
+        next < celebrityVoices.length &&
+        (celebrityVoices[next].locked && !purchased && !sharedMode)
+      ) {
+        next++;
+      }
+      if (next < celebrityVoices.length) {
+        voiceBtnRefs.current[next]?.focus();
+      }
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      let prev = idx - 1;
+      while (
+        prev >= 0 &&
+        (celebrityVoices[prev].locked && !purchased && !sharedMode)
+      ) {
+        prev--;
+      }
+      if (prev >= 0) {
+        voiceBtnRefs.current[prev]?.focus();
+      }
+    } else if ((e.key === "Enter" || e.key === " ") && !(locked && !purchased && !sharedMode)) {
+      e.preventDefault();
+      handleVoiceSelect(celebrityVoices[idx].id, locked);
+    }
+  };
+
   // Mock purchase
   const handlePurchase = () => {
     setPurchased(true);
@@ -140,7 +177,10 @@ export const PetWhisperer: React.FC = () => {
   };
 
   return (
-    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive">
+    <Card className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive" tabIndex={-1}>
+      <span className="sr-only" role="heading" aria-level={1}>
+        Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice.
+      </span>
       <CardHeader>
         <CardTitle className="text-2xl flex items-center gap-2">
           🐾 Pet Whisperer
@@ -150,7 +190,7 @@ export const PetWhisperer: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <Input
             type="file"
             accept="image/*"
@@ -199,20 +239,22 @@ export const PetWhisperer: React.FC = () => {
             )}
           </Button>
           <div>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2" role="group" aria-label="Celebrity voice selection">
               <TooltipProvider>
-                {celebrityVoices.map((cv) => {
+                {celebrityVoices.map((cv, idx) => {
                   const isLocked = cv.locked && !purchased && !sharedMode;
                   const isSelected = voice === cv.id;
                   const btn = (
                     <Button
                       key={cv.id}
+                      ref={el => (voiceBtnRefs.current[idx] = el)}
                       variant={isSelected ? "default" : "outline"}
                       size="sm"
                       className={`flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-150
                         ${isSelected ? "ring-2 ring-primary ring-offset-2 border-primary bg-primary/90 text-white shadow" : ""}
                         `}
                       onClick={() => handleVoiceSelect(cv.id, cv.locked)}
+                      onKeyDown={e => handleVoiceBtnKeyDown(e, idx, isLocked)}
                       disabled={isLocked || sharedMode}
                       aria-label={
                         isLocked
@@ -243,7 +285,7 @@ export const PetWhisperer: React.FC = () => {
             {!purchased && !sharedMode && (
               <Button
                 variant="secondary"
-                className="mt-2 w-full py-3 text-base font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border-2 border-primary text-primary bg-primary/10 hover:bg-primary/20 transition"
+                className="mt-4 w-full py-3 text-base font-bold focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 border-2 border-primary text-primary bg-primary/10 hover:bg-primary/20 transition"
                 onClick={handlePurchase}
                 aria-label="Unlock Celebrity Voices"
               >
@@ -252,7 +294,7 @@ export const PetWhisperer: React.FC = () => {
             )}
           </div>
           {message && (
-            <div className="mt-4 flex flex-col items-center gap-2">
+            <div className="mt-6 flex flex-col items-center gap-2">
               <div
                 className="bg-muted rounded p-3 w-full text-center text-lg font-semibold border border-gray-200 shadow-sm animate-fade-in"
                 style={{ animation: "fade-in 0.5s" }}
@@ -295,23 +337,25 @@ export const PetWhisperer: React.FC = () => {
             </div>
           )}
           {sharedMode && (
-            <div className="text-xs text-muted-foreground text-center mt-2">
+            <div className="text-xs text-muted-foreground text-center mt-4">
               You are viewing a shared Pet Whisperer message!<br />
-              <button
-                className={`text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800 fade-in-tryit`}
-                onClick={() => inputRef.current?.click()}
-                tabIndex={0}
-                role="button"
-                aria-label="Try it with your own pet"
-                onKeyDown={e => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    inputRef.current?.click();
-                  }
-                }}
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-              >
-                Try it with your own pet!
-              </button>
+              {showTryIt && (
+                <button
+                  className={`text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800 fade-in-tryit`}
+                  onClick={() => inputRef.current?.click()}
+                  tabIndex={0}
+                  role="button"
+                  aria-label="Try it with your own pet"
+                  onKeyDown={e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      inputRef.current?.click();
+                    }
+                  }}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                >
+                  Try it with your own pet!
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -369,6 +413,17 @@ export const PetWhisperer: React.FC = () => {
             .card-interactive, .card-interactive:hover {
               transition: none !important;
             }
+          }
+          .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
           }
         `}
       </style>
