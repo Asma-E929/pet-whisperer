@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,21 @@ export const PetWhisperer: React.FC = () => {
   const [voice, setVoice] = useState("default");
   const [purchased, setPurchased] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [sharedMode, setSharedMode] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load shared message from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedMessage = params.get("message");
+    const sharedVoice = params.get("voice");
+    if (sharedMessage) {
+      setMessage(sharedMessage);
+      setVoice(sharedVoice || "default");
+      setShareUrl(getShareUrl(sharedMessage, sharedVoice || "default"));
+      setSharedMode(true);
+    }
+  }, []);
 
   // Handle image upload
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +66,7 @@ export const PetWhisperer: React.FC = () => {
       setImage(ev.target?.result as string);
       setMessage(null);
       setShareUrl(null);
+      setSharedMode(false);
     };
     reader.readAsDataURL(file);
   };
@@ -68,6 +83,7 @@ export const PetWhisperer: React.FC = () => {
       setMessage(msg);
       setShareUrl(getShareUrl(msg, voice));
       setAnalyzing(false);
+      setSharedMode(false);
       toast.success("Pet message generated!");
     }, 1200);
   };
@@ -77,7 +93,7 @@ export const PetWhisperer: React.FC = () => {
     if (!message) return;
     let utter = new window.SpeechSynthesisUtterance(message);
     // Use a different voice if available (mock for celebrity)
-    if (voice !== "default" && purchased) {
+    if (voice !== "default" && (purchased || sharedMode)) {
       utter.rate = 1;
       utter.pitch = 1.2;
     }
@@ -86,12 +102,16 @@ export const PetWhisperer: React.FC = () => {
 
   // Handle celebrity voice selection
   const handleVoiceSelect = (v: string, locked: boolean) => {
-    if (locked && !purchased) {
+    if (locked && !purchased && !sharedMode) {
       toast.error("This voice is locked! Purchase to unlock celebrity voices.");
       return;
     }
     setVoice(v);
     toast.success(`Voice set to ${celebrityVoices.find(cv => cv.id === v)?.name || v}`);
+    // If a message is already generated, update shareUrl
+    if (message) {
+      setShareUrl(getShareUrl(message, v));
+    }
   };
 
   // Mock purchase
@@ -120,27 +140,31 @@ export const PetWhisperer: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          <Input
-            type="file"
-            accept="image/*"
-            ref={inputRef}
-            onChange={handleImageChange}
-            disabled={analyzing}
-          />
-          {image && (
+          {!sharedMode && (
+            <Input
+              type="file"
+              accept="image/*"
+              ref={inputRef}
+              onChange={handleImageChange}
+              disabled={analyzing}
+            />
+          )}
+          {image && !sharedMode && (
             <img
               src={image}
               alt="Pet"
               className="rounded-lg w-full h-48 object-cover border"
             />
           )}
-          <Button
-            onClick={handleAnalyze}
-            disabled={!image || analyzing}
-            className="w-full"
-          >
-            {analyzing ? "Analyzing..." : "Analyze Pet Face"}
-          </Button>
+          {!sharedMode && (
+            <Button
+              onClick={handleAnalyze}
+              disabled={!image || analyzing}
+              className="w-full"
+            >
+              {analyzing ? "Analyzing..." : "Analyze Pet Face"}
+            </Button>
+          )}
           <div>
             <div className="flex flex-wrap gap-2 mt-2">
               {celebrityVoices.map((cv) => (
@@ -150,14 +174,14 @@ export const PetWhisperer: React.FC = () => {
                   size="sm"
                   className="flex items-center gap-1"
                   onClick={() => handleVoiceSelect(cv.id, cv.locked)}
-                  disabled={cv.locked && !purchased}
+                  disabled={cv.locked && !purchased && !sharedMode}
                 >
-                  {cv.locked && !purchased ? <Lock size={16} /> : null}
+                  {cv.locked && !purchased && !sharedMode ? <Lock size={16} /> : null}
                   {cv.name}
                 </Button>
               ))}
             </div>
-            {!purchased && (
+            {!purchased && !sharedMode && (
               <Button
                 variant="secondary"
                 className="mt-2 w-full"
@@ -179,18 +203,25 @@ export const PetWhisperer: React.FC = () => {
               >
                 <Volume2 size={18} /> Play Voice Message
               </Button>
-              <Button
-                onClick={handleShare}
-                className="flex items-center gap-2"
-                variant="ghost"
-              >
-                <Share2 size={18} /> Share
-              </Button>
+              {!sharedMode && (
+                <Button
+                  onClick={handleShare}
+                  className="flex items-center gap-2"
+                  variant="ghost"
+                >
+                  <Share2 size={18} /> Share
+                </Button>
+              )}
               {shareUrl && (
                 <div className="text-xs text-muted-foreground break-all mt-1">
                   {shareUrl}
                 </div>
               )}
+            </div>
+          )}
+          {sharedMode && (
+            <div className="text-xs text-muted-foreground text-center mt-2">
+              You are viewing a shared Pet Whisperer message!
             </div>
           )}
         </div>
