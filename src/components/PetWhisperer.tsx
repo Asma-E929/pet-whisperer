@@ -57,7 +57,7 @@ export const PetWhisperer: React.FC = () => {
     }
   }, []);
 
-  // Handle image upload
+  // Handle image upload (reset shared mode)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -67,6 +67,10 @@ export const PetWhisperer: React.FC = () => {
       setMessage(null);
       setShareUrl(null);
       setSharedMode(false);
+      // Remove URL params if coming from shared mode
+      if (window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     };
     reader.readAsDataURL(file);
   };
