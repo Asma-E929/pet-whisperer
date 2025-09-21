@@ -82,7 +82,7 @@ export const PetWhisperer: React.FC = () => {
   // Mock AI analysis
   const handleAnalyze = () => {
     if (!image) {
-      toast.error("Please upload a pet photo first!");
+      toast.error("Please upload a pet photo first!", { ariaLive: "polite" });
       return;
     }
     setAnalyzing(true);
@@ -92,7 +92,7 @@ export const PetWhisperer: React.FC = () => {
       setShareUrl(getShareUrl(msg, voice));
       setAnalyzing(false);
       setSharedMode(false);
-      toast.success("Pet message generated!");
+      toast.success("Pet message generated!", { ariaLive: "polite" });
     }, 1200);
   };
 
@@ -111,11 +111,11 @@ export const PetWhisperer: React.FC = () => {
   // Handle celebrity voice selection
   const handleVoiceSelect = (v: string, locked: boolean) => {
     if (locked && !purchased && !sharedMode) {
-      toast.error("This voice is locked! Purchase to unlock celebrity voices.");
+      toast.error("This voice is locked! Purchase to unlock celebrity voices.", { ariaLive: "polite" });
       return;
     }
     setVoice(v);
-    toast.success(`Voice set to ${celebrityVoices.find(cv => cv.id === v)?.name || v}`);
+    toast.success(`Voice set to ${celebrityVoices.find(cv => cv.id === v)?.name || v}`, { ariaLive: "polite" });
     // If a message is already generated, update shareUrl
     if (message) {
       setShareUrl(getShareUrl(message, v));
@@ -125,14 +125,14 @@ export const PetWhisperer: React.FC = () => {
   // Mock purchase
   const handlePurchase = () => {
     setPurchased(true);
-    toast.success("Celebrity voices unlocked! Try them out.");
+    toast.success("Celebrity voices unlocked! Try them out.", { ariaLive: "polite" });
   };
 
   // Share
   const handleShare = () => {
     if (shareUrl) {
       navigator.clipboard.writeText(shareUrl);
-      toast.success("Shareable link copied to clipboard!");
+      toast.success("Shareable link copied to clipboard!", { ariaLive: "polite" });
     }
   };
 
@@ -161,7 +161,7 @@ export const PetWhisperer: React.FC = () => {
             <img
               src={image}
               alt="Uploaded pet"
-              className="rounded-lg w-full h-48 object-cover border border-gray-300 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="rounded-lg w-full h-48 object-cover border border-gray-300 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary animate-fade-in"
               tabIndex={0}
             />
           )}
@@ -197,25 +197,42 @@ export const PetWhisperer: React.FC = () => {
           </Button>
           <div>
             <div className="flex flex-wrap gap-2 mt-2">
-              {celebrityVoices.map((cv) => (
-                <Button
-                  key={cv.id}
-                  variant={voice === cv.id ? "default" : "outline"}
-                  size="sm"
-                  className="flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  onClick={() => handleVoiceSelect(cv.id, cv.locked)}
-                  disabled={(cv.locked && !purchased && !sharedMode) || sharedMode}
-                  aria-label={
-                    cv.locked && !purchased && !sharedMode
-                      ? `${cv.name} (locked)`
-                      : cv.name
-                  }
-                  tabIndex={0}
-                >
-                  {cv.locked && !purchased && !sharedMode ? <Lock size={16} aria-hidden /> : null}
-                  {cv.name}
-                </Button>
-              ))}
+              <TooltipProvider>
+                {celebrityVoices.map((cv) => {
+                  const isLocked = cv.locked && !purchased && !sharedMode;
+                  const btn = (
+                    <Button
+                      key={cv.id}
+                      variant={voice === cv.id ? "default" : "outline"}
+                      size="sm"
+                      className="flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      onClick={() => handleVoiceSelect(cv.id, cv.locked)}
+                      disabled={isLocked || sharedMode}
+                      aria-label={
+                        isLocked
+                          ? `${cv.name} (locked)`
+                          : cv.name
+                      }
+                      tabIndex={0}
+                    >
+                      {isLocked ? <Lock size={16} aria-hidden /> : null}
+                      {cv.name}
+                    </Button>
+                  );
+                  return isLocked ? (
+                    <Tooltip key={cv.id}>
+                      <TooltipTrigger asChild>
+                        {btn}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Unlock celebrity voices to use {cv.name}!
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    btn
+                  );
+                })}
+              </TooltipProvider>
             </div>
             {!purchased && !sharedMode && (
               <Button
