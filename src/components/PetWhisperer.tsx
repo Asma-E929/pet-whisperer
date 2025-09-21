@@ -193,9 +193,11 @@ export const PetWhisperer: React.FC = () => {
 
   return (
     <Card
+      id="pet-whisperer-card"
+      role="region"
+      aria-label="Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice."
       className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
       tabIndex={0}
-      aria-label="Pet Whisperer card"
     >
       <span className="sr-only" role="heading" aria-level={1}>
         Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice.
@@ -371,7 +373,7 @@ export const PetWhisperer: React.FC = () => {
                 <button
                   className={`text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition hover:text-blue-800 fade-in-tryit`}
                   onClick={() => inputRef.current?.click()}
-                  tabIndex={0}
+                  tabIndex={showTryIt ? 0 : -1}
                   role="button"
                   aria-label="Try it with your own pet"
                   onKeyDown={e => {
