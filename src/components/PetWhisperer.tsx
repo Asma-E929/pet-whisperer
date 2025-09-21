@@ -154,18 +154,20 @@ export const PetWhisperer: React.FC = () => {
             onChange={handleImageChange}
             disabled={analyzing || sharedMode}
             aria-label="Upload a pet photo"
+            className="focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           />
           {image && !sharedMode && (
             <img
               src={image}
               alt="Uploaded pet"
-              className="rounded-lg w-full h-48 object-cover border"
+              className="rounded-lg w-full h-48 object-cover border border-gray-300 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              tabIndex={0}
             />
           )}
           <Button
             onClick={handleAnalyze}
             disabled={!image || analyzing || sharedMode}
-            className="w-full flex items-center justify-center"
+            className="w-full flex items-center justify-center py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="Analyze Pet Face"
           >
             {analyzing ? (
@@ -199,7 +201,7 @@ export const PetWhisperer: React.FC = () => {
                   key={cv.id}
                   variant={voice === cv.id ? "default" : "outline"}
                   size="sm"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 min-w-[110px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   onClick={() => handleVoiceSelect(cv.id, cv.locked)}
                   disabled={(cv.locked && !purchased && !sharedMode) || sharedMode}
                   aria-label={
@@ -217,7 +219,7 @@ export const PetWhisperer: React.FC = () => {
             {!purchased && !sharedMode && (
               <Button
                 variant="secondary"
-                className="mt-2 w-full"
+                className="mt-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 onClick={handlePurchase}
                 aria-label="Unlock Celebrity Voices"
               >
@@ -227,12 +229,12 @@ export const PetWhisperer: React.FC = () => {
           </div>
           {message && (
             <div className="mt-4 flex flex-col items-center gap-2">
-              <div className="bg-muted rounded p-3 w-full text-center text-lg font-semibold">
+              <div className="bg-muted rounded p-3 w-full text-center text-lg font-semibold border border-gray-200 shadow-sm">
                 {message}
               </div>
               <Button
                 onClick={handlePlay}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 variant="outline"
                 aria-label="Play Voice Message"
               >
@@ -241,7 +243,7 @@ export const PetWhisperer: React.FC = () => {
               {!sharedMode && (
                 <Button
                   onClick={handleShare}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full py-3 text-base focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   variant="ghost"
                   aria-label="Share"
                 >
@@ -258,8 +260,8 @@ export const PetWhisperer: React.FC = () => {
           {sharedMode && (
             <div className="text-xs text-muted-foreground text-center mt-2">
               You are viewing a shared Pet Whisperer message!<br />
-              <span
-                className="text-blue-500 underline cursor-pointer"
+              <button
+                className="text-blue-600 underline font-medium mt-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition"
                 onClick={() => inputRef.current?.click()}
                 tabIndex={0}
                 role="button"
@@ -269,9 +271,10 @@ export const PetWhisperer: React.FC = () => {
                     inputRef.current?.click();
                   }
                 }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
               >
                 Try it with your own pet!
-              </span>
+              </button>
             </div>
           )}
         </div>
@@ -286,6 +289,9 @@ export const PetWhisperer: React.FC = () => {
             }
             .h-48 {
               height: 10rem !important;
+            }
+            .min-w-[110px] {
+              min-width: 90px !important;
             }
           }
         `}
