@@ -1,17 +1,26 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import PetWhisperer from "@/components/PetWhisperer";
+import { useRef } from "react";
 
 const Index = () => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <a
         href="#pet-whisperer-card"
         className="skip-link"
         tabIndex={0}
+        onClick={e => {
+          // Wait for navigation, then focus the card
+          setTimeout(() => {
+            cardRef.current?.focus();
+          }, 0);
+        }}
       >
         Skip to Pet Whisperer
       </a>
-      <PetWhisperer />
+      <PetWhisperer cardRef={cardRef} />
       <div className="mt-8">
         <MadeWithDyad />
       </div>

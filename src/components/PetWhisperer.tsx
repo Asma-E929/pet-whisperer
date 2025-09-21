@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, ForwardedRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,11 @@ function getShareUrl(message: string, voice: string) {
   return `${window.location.origin}/?${params.toString()}`;
 }
 
-export const PetWhisperer: React.FC = () => {
+type PetWhispererProps = {
+  cardRef?: React.RefObject<HTMLDivElement>;
+};
+
+export const PetWhisperer: React.FC<PetWhispererProps> = ({ cardRef }) => {
   const [image, setImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -197,7 +201,8 @@ export const PetWhisperer: React.FC = () => {
       role="region"
       aria-label="Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice."
       className="max-w-md w-full mx-auto mt-8 shadow-lg animate-fade-in-card card-interactive focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
-      tabIndex={0}
+      tabIndex={-1}
+      ref={cardRef}
     >
       <span className="sr-only" role="heading" aria-level={1}>
         Pet Whisperer: Upload a pet photo and get a funny AI-generated message in a celebrity voice.
